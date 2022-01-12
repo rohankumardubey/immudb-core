@@ -77,6 +77,7 @@ func DefaultOptions() *Options {
 		ServerSigningPubKey: "",
 		StreamChunkSize:     stream.DefaultChunkSize,
 		HeartBeatFrequency:  time.Minute * 1,
+		TokenFileName:       "token",
 	}
 }
 

@@ -39,7 +39,7 @@ func TestHistory(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -85,7 +85,7 @@ func TestStatus(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -131,7 +131,7 @@ func TestUseDatabase(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)

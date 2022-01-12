@@ -16,6 +16,8 @@ package immuadmin
 
 import (
 	"fmt"
+	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/codenotary/immudb/pkg/client"
@@ -55,14 +57,18 @@ func Options() *client.Options {
 func (cl *commandline) configureFlags(cmd *cobra.Command) error {
 	cmd.PersistentFlags().IntP("immudb-port", "p", client.DefaultOptions().Port, "immudb port number")
 	cmd.PersistentFlags().StringP("immudb-address", "a", client.DefaultOptions().Address, "immudb host address")
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+	absPath := filepath.Join(usr.HomeDir, client.DefaultOptions().TokenFileName+client.AdminTokenFileSuffix)
+
 	cmd.PersistentFlags().String(
 		"tokenfile",
-		client.DefaultOptions().TokenFileName,
+		absPath,
 		fmt.Sprintf(
-			"authentication token file (default path is $HOME or binary location; the supplied "+
-				"value will be automatically suffixed with %s; default filename is %s%s)",
-			client.AdminTokenFileSuffix,
-			client.DefaultOptions().TokenFileName,
+			"authentication token file (the supplied "+
+				"value will be automatically suffixed with %s)",
 			client.AdminTokenFileSuffix))
 	cmd.PersistentFlags().StringVar(&cl.config.CfgFn, "config", "", "config file (default path is configs or $HOME; default filename is immuadmin.toml)")
 	cmd.PersistentFlags().BoolP("mtls", "m", client.DefaultOptions().MTLs, "enable mutual tls")
@@ -96,7 +102,8 @@ func (cl *commandline) configureFlags(cmd *cobra.Command) error {
 	}
 	viper.SetDefault("immudb-port", client.DefaultOptions().Port)
 	viper.SetDefault("immudb-address", client.DefaultOptions().Address)
-	viper.SetDefault("tokenfile", client.DefaultOptions().TokenFileName+client.AdminTokenFileSuffix)
+
+	viper.SetDefault("tokenfile", absPath)
 	viper.SetDefault("mtls", client.DefaultOptions().MTLs)
 	viper.SetDefault("servername", client.DefaultMTLsOptions().Servername)
 	viper.SetDefault("certificate", client.DefaultMTLsOptions().Certificate)

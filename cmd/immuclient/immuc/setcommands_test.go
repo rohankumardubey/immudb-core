@@ -40,7 +40,7 @@ func TestSet(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -69,7 +69,7 @@ func TestVerifiedSet(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -98,7 +98,7 @@ func TestZAdd(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -129,7 +129,7 @@ func _TestVerifiedZAdd(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -159,7 +159,7 @@ func TestCreateDatabase(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)

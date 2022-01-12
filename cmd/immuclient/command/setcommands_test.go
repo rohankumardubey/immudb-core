@@ -40,7 +40,7 @@ func TestRawSafeSet(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -84,7 +84,7 @@ func TestSet(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -128,7 +128,7 @@ func TestSafeset(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -172,7 +172,7 @@ func TestZAdd(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -231,7 +231,7 @@ func TestSafeZAdd(t *testing.T) {
 	bs.Start()
 defer bs.Stop()
 
-	ts := tokenservice.NewTokenService().WithTokenFileName("testTokenFile").WithHds(&test.HomedirServiceMock{})
+	ts := tokenservice.NewTokenService().WithTokenFileAbsPath("testTokenFile").WithHds(&test.HomedirServiceMock{})
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)

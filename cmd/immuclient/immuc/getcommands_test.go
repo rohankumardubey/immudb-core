@@ -40,7 +40,7 @@ func TestGetTxByID(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -69,7 +69,7 @@ func TestGet(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -98,7 +98,7 @@ func TestVerifiedGet(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)

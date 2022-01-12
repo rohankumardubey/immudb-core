@@ -19,7 +19,7 @@ package tokenservice
 import (
 	"encoding/binary"
 	"errors"
-	"github.com/codenotary/immudb/pkg/client/homedir"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -27,15 +27,13 @@ import (
 
 type file struct {
 	sync.Mutex
-	tokenFileName string
-	hds           homedir.HomedirService
+	tokenAbsPath string
 }
 
 //NewFileTokenService ...
 func NewFileTokenService() *file {
 	return &file{
-		tokenFileName: "token",
-		hds:           homedir.NewHomedirService(),
+		tokenAbsPath: "token",
 	}
 }
 
@@ -56,7 +54,7 @@ func (ts *file) SetToken(database string, token string) error {
 	if token == "" {
 		return ErrEmptyTokenProvided
 	}
-	return ts.hds.WriteFileToUserHomeDir(BuildToken(database, token), ts.tokenFileName)
+	return ioutil.WriteFile(ts.tokenAbsPath, BuildToken(database, token), 0644)
 }
 
 func BuildToken(database string, token string) []byte {
@@ -74,7 +72,7 @@ func BuildToken(database string, token string) []byte {
 func (ts *file) DeleteToken() error {
 	ts.Lock()
 	defer ts.Unlock()
-	return ts.hds.DeleteFileFromUserHomeDir(ts.tokenFileName)
+	return os.Remove(ts.tokenAbsPath)
 }
 
 //IsTokenPresent ...
@@ -99,10 +97,12 @@ func (ts *file) GetDatabase() (string, error) {
 }
 
 func (ts *file) parseContent() (string, string, error) {
-	content, err := ts.hds.ReadFileFromUserHomeDir(ts.tokenFileName)
+	contentBytes, err := ioutil.ReadFile(ts.tokenAbsPath)
 	if err != nil {
 		return "", "", err
 	}
+	content := string(contentBytes)
+
 	if len(content) <= 8 {
 		return "", "", ErrTokenContentNotPresent
 	}
@@ -125,14 +125,8 @@ func (ts *file) parseContent() (string, string, error) {
 	return string(databasename), string(token), nil
 }
 
-// WithHds ...
-func (ts *file) WithHds(hds homedir.HomedirService) *file {
-	ts.hds = hds
-	return ts
-}
-
-// WithTokenFileName ...
-func (ts *file) WithTokenFileName(tfn string) *file {
-	ts.tokenFileName = tfn
+// WithTokenFileAbsPath ...
+func (ts *file) WithTokenFileAbsPath(tfn string) *file {
+	ts.tokenAbsPath = tfn
 	return ts
 }

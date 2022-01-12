@@ -58,7 +58,7 @@ func TestRunCommand(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -92,7 +92,7 @@ func TestRunCommandExtraArgs(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -125,7 +125,7 @@ func TestRunMissingArgs(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -159,7 +159,7 @@ func TestRunWrongCommand(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -192,7 +192,7 @@ func TestCheckCommand(t *testing.T) {
 	defer os.Remove(".state-")
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
 	}, ts)
@@ -253,7 +253,7 @@ func TestImmuClient_BackupAndRestoreUX(t *testing.T) {
 	cliOpts.CurrentDatabase = client.DefaultDB
 
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileName(tkf)
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 
 	ic := test.NewClientTest(&test.PasswordReader{
 		Pass: []string{"immudb"},
