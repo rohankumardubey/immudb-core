@@ -16,10 +16,10 @@ package immuadmin
 
 import (
 	"fmt"
+	"github.com/codenotary/immudb/cmd/helper"
 	"github.com/codenotary/immudb/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os/user"
 	"path/filepath"
 )
 
@@ -52,11 +52,7 @@ func Options() *client.Options {
 func (cl *commandline) configureFlags(cmd *cobra.Command) error {
 	cmd.PersistentFlags().IntP("immudb-port", "p", client.DefaultOptions().Port, "immudb port number")
 	cmd.PersistentFlags().StringP("immudb-address", "a", client.DefaultOptions().Address, "immudb host address")
-	usr, err := user.Current()
-	if err != nil {
-		return err
-	}
-	absPath := filepath.Join(usr.HomeDir, client.DefaultOptions().TokenFileName+client.AdminTokenFileSuffix)
+	absPath := filepath.Join(helper.STATE_FOLDER, client.DefaultOptions().TokenFileName+client.AdminTokenFileSuffix)
 	cmd.PersistentFlags().String(
 		"tokenfile",
 		absPath,

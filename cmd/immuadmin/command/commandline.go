@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/codenotary/immudb/pkg/client/tokenservice"
 	"github.com/spf13/viper"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -79,9 +78,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		opt := Options()
 		tfAbsPath := opt.TokenFileName
 		if !viper.IsSet("tokenfile") {
-			if user, err := user.Current(); err == nil {
-				tfAbsPath = filepath.Join(user.HomeDir, client.DefaultTokenFileName)
-			}
+			tfAbsPath = filepath.Join(c.STATE_FOLDER, client.DefaultTokenFileName)
 		}
 		if !strings.HasSuffix(tfAbsPath, client.AdminTokenFileSuffix) {
 			tfAbsPath += client.AdminTokenFileSuffix

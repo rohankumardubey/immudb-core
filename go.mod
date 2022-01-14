@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/adrg/xdg v0.4.0
 	github.com/aead/chacha20poly1305 v0.0.0-20201124145622-1a5aba2a8b29 // indirect
 	github.com/fatih/color v1.12.0
 	github.com/gizak/termui/v3 v3.1.0
@@ -44,7 +45,7 @@ require (
 	github.com/takama/daemon v0.12.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	golang.org/x/net v0.0.0-20210716203947-853a461950ff
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
 	google.golang.org/genproto v0.0.0-20210722135532-667f2b7c528f
 	google.golang.org/grpc v1.39.0
 	google.golang.org/protobuf v1.27.1

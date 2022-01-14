@@ -21,6 +21,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"sync"
 )
@@ -47,12 +48,15 @@ func (ts *file) GetToken() (string, error) {
 	return token, nil
 }
 
-//SetToken ...
+//SetToken create a new file with the token. If file does not exist, create it.
 func (ts *file) SetToken(database string, token string) error {
 	ts.Lock()
 	defer ts.Unlock()
 	if token == "" {
 		return ErrEmptyTokenProvided
+	}
+	if err := os.MkdirAll(path.Dir(ts.tokenAbsPath), os.ModePerm); err != nil {
+		return err
 	}
 	return ioutil.WriteFile(ts.tokenAbsPath, BuildToken(database, token), 0644)
 }

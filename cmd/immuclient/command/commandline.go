@@ -6,7 +6,6 @@ import (
 	"github.com/codenotary/immudb/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os/user"
 	"path/filepath"
 )
 
@@ -33,9 +32,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		opt := immuc.Options()
 		tfAbsPath := opt.TokenFileName
 		if !viper.IsSet("tokenfile") {
-			if user, err := user.Current(); err == nil {
-				tfAbsPath = filepath.Join(user.HomeDir, client.DefaultTokenFileName)
-			}
+			tfAbsPath = filepath.Join(c.STATE_FOLDER, client.DefaultTokenFileName)
 		}
 		opt.WithTokenFileName(tfAbsPath)
 
