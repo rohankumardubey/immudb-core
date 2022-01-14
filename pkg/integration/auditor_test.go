@@ -21,7 +21,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/codenotary/immudb/cmd/cmdtest"
-	"github.com/codenotary/immudb/pkg/client/homedir"
 	"github.com/codenotary/immudb/pkg/client/tokenservice"
 	"io/ioutil"
 	"log"
@@ -115,7 +114,7 @@ func TestDefaultAuditorRunOnDb(t *testing.T) {
 		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
 	}
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf).WithHds(homedir.NewHomedirService())
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	cliopt := client.DefaultOptions().WithDialOptions(dialOptions).WithPasswordReader(pr)
 
 	cliopt.PasswordReader = pr
@@ -181,7 +180,7 @@ func TestRepeatedAuditorRunOnDb(t *testing.T) {
 		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
 	}
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf).WithHds(homedir.NewHomedirService())
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	cliopt := client.DefaultOptions().WithDialOptions(dialOptions).WithPasswordReader(pr)
 
 	cliopt.PasswordReader = pr
@@ -281,7 +280,7 @@ func testDefaultAuditorRunOnDbWithSignature(t *testing.T, pk *ecdsa.PublicKey) {
 		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
 	}
 	tkf := cmdtest.RandString()
-	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf).WithHds(homedir.NewHomedirService())
+	ts := tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
 	cliopt := client.DefaultOptions().WithDialOptions(dialOptions).WithPasswordReader(pr)
 
 	cliopt.PasswordReader = pr

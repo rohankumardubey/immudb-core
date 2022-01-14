@@ -20,6 +20,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/codenotary/immudb/pkg/client/tokenservice"
+	"github.com/spf13/viper"
+	"os/user"
+	"path/filepath"
+	"strings"
 
 	c "github.com/codenotary/immudb/cmd/helper"
 	"github.com/codenotary/immudb/pkg/client"
@@ -72,9 +76,18 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		if err = cl.config.LoadConfig(cmd); err != nil {
 			return err
 		}
-		// here all command line options and services need to be configured by options retrieved from viper
-		cl.options = Options()
-		cl.ts = tokenservice.NewFileTokenService().WithTokenFileAbsPath(cl.options.TokenFileName)
+		opt := Options()
+		tfAbsPath := opt.TokenFileName
+		if !viper.IsSet("tokenfile") {
+			if user, err := user.Current(); err == nil {
+				tfAbsPath = filepath.Join(user.HomeDir, client.DefaultTokenFileName)
+			}
+		}
+		if !strings.HasSuffix(tfAbsPath, client.AdminTokenFileSuffix) {
+			tfAbsPath += client.AdminTokenFileSuffix
+		}
+		cl.options = opt.WithTokenFileName(tfAbsPath)
+		cl.ts = tokenservice.NewFileTokenService().WithTokenFileAbsPath(tfAbsPath)
 		if post != nil {
 			return post(cmd, args)
 		}

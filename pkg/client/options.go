@@ -29,6 +29,7 @@ import (
 
 // AdminTokenFileSuffix is the suffix used for the token file name
 const AdminTokenFileSuffix = "_admin"
+const DefaultTokenFileName = "token"
 
 // Options client options
 type Options struct {
@@ -77,7 +78,7 @@ func DefaultOptions() *Options {
 		ServerSigningPubKey: "",
 		StreamChunkSize:     stream.DefaultChunkSize,
 		HeartBeatFrequency:  time.Minute * 1,
-		TokenFileName:       "token",
+		TokenFileName:       DefaultTokenFileName,
 	}
 }
 

@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"github.com/codenotary/immudb/pkg/client/homedir"
 	"github.com/codenotary/immudb/pkg/client/tokenservice"
 	"github.com/spf13/viper"
 	"os"
@@ -31,7 +30,7 @@ func main() {
 	err := execute(
 		c.DefaultPasswordReader,
 		c.NewTerminalReader(os.Stdin),
-		tokenservice.NewFileTokenService().WithHds(homedir.NewHomedirService()).WithTokenFileName(viper.GetString("tokenfile")),
+		tokenservice.NewFileTokenService().WithTokenFileAbsPath(viper.GetString("tokenfile")),
 		c.QuitWithUserError,
 		nil)
 	if err != nil {

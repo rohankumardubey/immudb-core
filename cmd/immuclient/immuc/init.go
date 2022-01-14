@@ -18,6 +18,8 @@ package immuc
 import (
 	"errors"
 	"fmt"
+	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/codenotary/immudb/pkg/client/tokenservice"
@@ -161,6 +163,13 @@ func (i *immuc) WithFileTokenService(tkns tokenservice.TokenService) Client {
 }
 
 func Options() *client.Options {
+	tfAbsPath := viper.GetString("tokenfile")
+	if !viper.IsSet("tokenfile") {
+		if user, err := user.Current(); err != nil {
+			tfAbsPath = filepath.Join(user.HomeDir, client.DefaultTokenFileName)
+		}
+	}
+
 	password, _ := auth.DecodeBase64Password(viper.GetString("password"))
 	options := client.DefaultOptions().
 		WithPort(viper.GetInt("immudb-port")).
@@ -168,7 +177,7 @@ func Options() *client.Options {
 		WithUsername(viper.GetString("username")).
 		WithPassword(password).
 		WithDatabase(viper.GetString("database")).
-		WithTokenFileName(viper.GetString("tokenfile")).
+		WithTokenFileName(tfAbsPath).
 		WithMTLs(viper.GetBool("mtls")).
 		WithServerSigningPubKey(viper.GetString("server-signing-pub-key"))
 

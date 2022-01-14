@@ -17,7 +17,6 @@ limitations under the License.
 package tokenservice
 
 import (
-	"github.com/codenotary/immudb/pkg/client/homedir"
 	"os"
 	"testing"
 
@@ -26,7 +25,7 @@ import (
 
 func TestTokenSevice_setToken(t *testing.T) {
 	fn := "deleteme"
-	ts := file{tokenAbsPath: fn, hds: homedir.NewHomedirService()}
+	ts := file{tokenAbsPath: fn}
 	err := ts.SetToken("db1", "")
 	require.Equal(t, ErrEmptyTokenProvided, err)
 	err = ts.SetToken("db1", "toooooken")
@@ -42,7 +41,7 @@ func TestTokenSevice_setToken(t *testing.T) {
 
 func TestTokenService_IsTokenPresent(t *testing.T) {
 	fn := "deleteme"
-	ts := file{tokenAbsPath: fn, hds: homedir.NewHomedirService()}
+	ts := file{tokenAbsPath: fn}
 	err := ts.SetToken("db1", "toooooken")
 	require.Nil(t, err)
 	ok, err := ts.IsTokenPresent()
@@ -52,7 +51,7 @@ func TestTokenService_IsTokenPresent(t *testing.T) {
 
 func TestTokenService_DeleteToken(t *testing.T) {
 	fn := "deleteme"
-	ts := file{tokenAbsPath: fn, hds: homedir.NewHomedirService()}
+	ts := file{tokenAbsPath: fn}
 	err := ts.SetToken("db1", "toooooken")
 	require.Nil(t, err)
 	err = ts.DeleteToken()
