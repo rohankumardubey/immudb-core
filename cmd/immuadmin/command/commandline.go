@@ -75,6 +75,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		if err = cl.config.LoadConfig(cmd); err != nil {
 			return err
 		}
+		// options now that config is loaded are availables
 		opt := Options()
 		tfAbsPath := opt.TokenFileName
 		if !viper.IsSet("tokenfile") {
@@ -84,6 +85,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 			tfAbsPath += client.AdminTokenFileSuffix
 		}
 		cl.options = opt.WithTokenFileName(tfAbsPath)
+		// token service is needed here because the one in cl.immuClient is not exposed
 		cl.ts = tokenservice.NewFileTokenService().WithTokenFileAbsPath(tfAbsPath)
 		if post != nil {
 			return post(cmd, args)

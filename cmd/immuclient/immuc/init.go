@@ -81,11 +81,11 @@ type Client interface {
 }
 
 // Init ...
-func Init(opts *client.Options) (*immuc, error) {
+func Init(opts *client.Options) *immuc {
 	ic := new(immuc)
 	ic.passwordReader = opts.PasswordReader
 	ic.options = opts
-	return ic, nil
+	return ic
 }
 
 func (i *immuc) Connect(args []string) (err error) {

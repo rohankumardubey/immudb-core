@@ -28,7 +28,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		if err = cl.config.LoadConfig(cmd); err != nil {
 			return err
 		}
-
+		// options now that config is loaded are availables
 		opt := immuc.Options()
 		tfAbsPath := opt.TokenFileName
 		if !viper.IsSet("tokenfile") {
@@ -37,7 +37,7 @@ func (cl *commandline) ConfigChain(post func(cmd *cobra.Command, args []string) 
 		opt.WithTokenFileName(tfAbsPath)
 
 		cl.options = opt
-		cl.immucl, err = immuc.Init(cl.options)
+		cl.immucl = immuc.Init(cl.options)
 		if post != nil {
 			return post(cmd, args)
 		}

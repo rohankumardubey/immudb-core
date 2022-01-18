@@ -208,50 +208,11 @@ func TestCommandLine_LoginLogout(t *testing.T) {
 }
 
 func TestCommandLine_CheckLoggedIn(t *testing.T) {
-	options := server.DefaultOptions().WithAuth(true)
-	bs := servertest.NewBufconnServer(options)
-
-	bs.Start()
-	defer bs.Stop()
-
-	defer os.RemoveAll(options.Dir)
-	defer os.Remove(".state-")
-
-	cl := commandline{}
+	ts := clienttest.DefaultTokenServiceMock()
+	cl := &commandline{
+		ts: ts,
+	}
 	cmd, _ := cl.NewCmd()
-	cl.context = context.Background()
-	cl.passwordReader = pwReaderMock
-	dialOptions := []grpc.DialOption{
-		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
-	}
-
-	cmd.SetArgs([]string{"login", "immudb"})
-	cmd.Execute()
-
-	cl.options = Options()
-	cl.options.DialOptions = dialOptions
-	cl.login(cmd)
-
-	cmd1 := cobra.Command{}
-	cl1 := new(commandline)
-	cl1.context = context.Background()
-	cl1.passwordReader = pwReaderMock
-	tkf := cmdtest.RandString()
-	cl1.ts = tokenservice.NewFileTokenService().WithTokenFileAbsPath(tkf)
-	dialOptions1 := []grpc.DialOption{
-		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
-	}
-
-	cl1.options = Options()
-	cl1.options.DialOptions = dialOptions1
-	err := cl1.checkLoggedIn(&cmd1, nil)
+	err := cl.checkLoggedIn(cmd, nil)
 	assert.Nil(t, err)
-}
-
-func newHomedirServiceMock() *clienttest.HomedirServiceMock {
-	h := clienttest.DefaultHomedirServiceMock()
-	h.FileExistsInUserHomeDirF = func(pathToFile string) (bool, error) {
-		return true, nil
-	}
-	return h
 }

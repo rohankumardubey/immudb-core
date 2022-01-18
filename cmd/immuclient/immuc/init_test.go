@@ -40,11 +40,9 @@ func TestConnect(t *testing.T) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithContextDialer(bs.Dialer), grpc.WithInsecure(),
 	}
-	imc, err := Init(Options().WithDialOptions(dialOptions))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = imc.Connect([]string{""})
+	imc := Init(Options().WithDialOptions(dialOptions))
+
+	err := imc.Connect([]string{""})
 	if err != nil {
 		t.Fatal(err)
 	}

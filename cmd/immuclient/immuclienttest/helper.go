@@ -87,11 +87,9 @@ func (c *clientTest) Connect(dialer servertest.BuffDialer) {
 		grpc.WithContextDialer(dialer), grpc.WithInsecure(),
 	}
 
-	ic, err := immuc.Init(c.Options.WithDialOptions(dialOptions).WithPasswordReader(c.Pr))
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = ic.Connect([]string{""})
+	ic := immuc.Init(c.Options.WithDialOptions(dialOptions).WithPasswordReader(c.Pr))
+
+	err := ic.Connect([]string{""})
 	if err != nil {
 		log.Fatal(err)
 	}
