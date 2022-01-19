@@ -66,7 +66,6 @@ func NewCommandLine() *commandline {
 	cl.config.Name = "immuadmin"
 	cl.passwordReader = c.DefaultPasswordReader
 	cl.context = context.Background()
-	//
 	return cl
 }
 
