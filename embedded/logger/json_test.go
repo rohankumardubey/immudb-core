@@ -319,7 +319,7 @@ func TestJSONLogger(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, "github.com/codenotary/immudb/pkg/logger.logWithFunc", raw["component"])
+		assert.Equal(t, "github.com/codenotary/immudb/embedded/logger.logWithFunc", raw["component"])
 	})
 
 }
