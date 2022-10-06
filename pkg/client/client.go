@@ -189,8 +189,6 @@ type ImmuClient interface {
 
 const DefaultDB = "defaultdb"
 
-type ErrorHandler func(sessionID string, err error)
-
 type immuClient struct {
 	Dir                  string
 	Logger               logger.Logger
@@ -203,7 +201,7 @@ type immuClient struct {
 	StreamServiceFactory stream.ServiceFactory
 	SessionID            string
 	HeartBeater          heartbeater.HeartBeater
-	errorHandler         ErrorHandler
+	errorHandler         heartbeater.ErrorHandler
 }
 
 // Ensure immuClient implements the ImmuClient interface
@@ -277,7 +275,6 @@ func NewImmuClient(options *Options) (*immuClient, error) {
 	}
 
 	c.WithStateService(stateService)
-	c.WithErrorHandler(c.keepAliveErrorHandler)
 
 	return c, nil
 }
