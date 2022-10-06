@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	"github.com/codenotary/immudb/pkg/api/schema"
 	"github.com/codenotary/immudb/pkg/client/cache"
 	"github.com/codenotary/immudb/pkg/client/errors"
@@ -37,7 +38,7 @@ func (c *immuClient) OpenSession(ctx context.Context, user []byte, pass []byte, 
 	if err != nil {
 		return err
 	}
-	defer func(){
+	defer func() {
 		if err != nil {
 			_ = clientConn.Close()
 		}
@@ -52,7 +53,7 @@ func (c *immuClient) OpenSession(ctx context.Context, user []byte, pass []byte, 
 	if err != nil {
 		return errors.FromError(err)
 	}
-	defer func(){
+	defer func() {
 		if err != nil {
 			_, _ = serviceClient.CloseSession(ctx, new(empty.Empty))
 		}
@@ -70,8 +71,8 @@ func (c *immuClient) OpenSession(ctx context.Context, user []byte, pass []byte, 
 	c.Options.DialOptions = dialOptions
 	c.SessionID = resp.GetSessionID()
 
-	c.HeartBeater = heartbeater.NewHeartBeater(c.SessionID, c.ServiceClient, c.Options.HeartBeatFrequency)
-	c.HeartBeater.KeepAlive(ctx)
+	c.HeartBeater = heartbeater.NewHeartBeater(c.SessionID, c.ServiceClient, c.Options.HeartBeatFrequency, c.errorHandler)
+	c.HeartBeater.KeepAlive(context.Background())
 
 	c.WithStateService(stateService)
 
