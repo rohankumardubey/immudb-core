@@ -57,7 +57,7 @@ func TestSQLInteraction(t *testing.T) {
 	require.Error(t, err)
 
 	_, err = s.DescribeTable(ctx, nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = s.DescribeTable(ctx, &schema.Table{})
 	require.Error(t, err)

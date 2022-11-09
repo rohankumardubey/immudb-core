@@ -49,7 +49,7 @@ func TestZSender(t *testing.T) {
 
 	err = zss.Send(&zEntry)
 	require.Error(t, err)
-	require.Equal(t, errors.New("receive msg error"), err)
+	require.EqualError(t, err, "receive msg error")
 
 	// other error
 	msm.SendF = func(io.Reader, int) error { return errors.New("send error") }
@@ -57,7 +57,7 @@ func TestZSender(t *testing.T) {
 	zss = NewZStreamSender(&msm)
 	err = zss.Send(&zEntry)
 	require.Error(t, err)
-	require.Equal(t, errors.New("send error"), err)
+	require.EqualError(t, err, "send error")
 
 	// no error
 	msm.SendF = func(io.Reader, int) error { return nil }

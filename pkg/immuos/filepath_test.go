@@ -40,7 +40,7 @@ func TestStandardFilepath(t *testing.T) {
 		return "", errAbs
 	}
 	_, err = fp.Abs(relPath)
-	require.Equal(t, errAbs, err)
+	require.ErrorIs(t, err, errAbs)
 	fp.AbsF = absFOK
 
 	// Base

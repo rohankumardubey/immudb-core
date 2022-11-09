@@ -52,7 +52,7 @@ func TestStandardUser(t *testing.T) {
 		return nil, errLookupGroup
 	}
 	_, err := su.LookupGroup("name")
-	require.Equal(t, errLookupGroup, err)
+	require.ErrorIs(t, err, errLookupGroup)
 	su.LookupGroupF = lookupGroupFOK
 
 	// Lookup ...
@@ -62,6 +62,6 @@ func TestStandardUser(t *testing.T) {
 		return nil, errLookup
 	}
 	_, err = su.Lookup("username")
-	require.Equal(t, errLookup, err)
+	require.ErrorIs(t, err, errLookup)
 	su.LookupF = lookupFOK
 }

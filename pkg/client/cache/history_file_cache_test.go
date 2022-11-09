@@ -121,8 +121,7 @@ func TestHistoryFileCache_GetError(t *testing.T) {
 	err = ioutil.WriteFile(filepath.Join(dir, "exists"), []byte("data"), 0644)
 	require.NoError(t, err)
 	_, err = fc.Get("exists", "dbName")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "exists")
+	require.ErrorContains(t, err, "exists")
 }
 
 func TestHistoryFileCache_SetMissingFolder(t *testing.T) {

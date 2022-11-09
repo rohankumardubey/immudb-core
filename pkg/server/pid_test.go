@@ -71,7 +71,7 @@ func TestPid(t *testing.T) {
 		return errMkdir
 	}
 	_, err = NewPid(pidPath, OS)
-	require.Equal(t, errMkdir, err)
+	require.ErrorIs(t, err, errMkdir)
 	OS.StatF = statFOK
 
 	errWriteFile := errors.New("WriteFile error")
@@ -79,7 +79,7 @@ func TestPid(t *testing.T) {
 		return errWriteFile
 	}
 	_, err = NewPid(pidPath, OS)
-	require.Equal(t, errWriteFile, err)
+	require.ErrorIs(t, err, errWriteFile)
 
 	OS.WriteFileF = func(filename string, data []byte, perm os.FileMode) error {
 		return nil

@@ -159,8 +159,7 @@ func TestReplication(t *testing.T) {
 
 	t.Run("key1 should not exist", func(t *testing.T) {
 		_, err = replicaClient.Get(rctx, []byte("key1"))
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "key not found")
+		require.ErrorContains(t, err, "key not found")
 	})
 
 	_, err = primaryClient.Set(pctx, []byte("key1"), []byte("value1"))
@@ -270,8 +269,7 @@ func TestSystemDBAndDefaultDBReplication(t *testing.T) {
 
 	t.Run("key1 should not exist", func(t *testing.T) {
 		_, err = replicaClient.Get(context.Background(), []byte("key1"))
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "key not found")
+		require.ErrorContains(t, err, "key not found")
 	})
 
 	_, err = primaryClient.Set(context.Background(), []byte("key1"), []byte("value1"))

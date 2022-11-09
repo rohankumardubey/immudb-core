@@ -434,7 +434,7 @@ func TestExecAllOpsInvalidKvKey(t *testing.T) {
 		},
 	}
 	_, err = db.ExecAll(aOps)
-	require.Equal(t, ErrReferencedKeyCannotBeAReference, err)
+	require.ErrorIs(t, err, ErrReferencedKeyCannotBeAReference)
 }
 
 func TestExecAllOpsZAddKeyNotFound(t *testing.T) {
@@ -1157,7 +1157,7 @@ func TestOps_ReferenceKeyAlreadyPersisted(t *testing.T) {
 		},
 	}
 	_, err = db.ExecAll(aOps)
-	require.Equal(t, ErrReferencedKeyCannotBeAReference, err)
+	require.ErrorIs(t, err, ErrReferencedKeyCannotBeAReference)
 
 	aOps = &schema.ExecAllRequest{
 		Operations: []*schema.Op{
@@ -1174,7 +1174,7 @@ func TestOps_ReferenceKeyAlreadyPersisted(t *testing.T) {
 		},
 	}
 	_, err = db.ExecAll(aOps)
-	require.Equal(t, ErrFinalKeyCannotBeConvertedIntoReference, err)
+	require.ErrorIs(t, err, ErrFinalKeyCannotBeConvertedIntoReference)
 
 	ref, err := db.Get(&schema.KeyRequest{Key: []byte(`myReference`), SinceTx: idx1.Id})
 	require.NoError(t, err)
@@ -1388,7 +1388,7 @@ func TestOps_ReferenceIndexNotExists(t *testing.T) {
 		},
 	}
 	_, err := st.ExecAllOps(aOps)
-	require.Equal(t, ErrIndexNotFound, err)
+	require.ErrorIs(t, err, ErrIndexNotFound)
 }
 
 func TestOps_ReferenceIndexMissing(t *testing.T) {
@@ -1409,6 +1409,6 @@ func TestOps_ReferenceIndexMissing(t *testing.T) {
 		},
 	}
 	_, err := st.ExecAllOps(aOps)
-	require.Equal(t, ErrReferenceIndexMissing, err)
+	require.ErrorIs(t, err, ErrReferenceIndexMissing)
 }
 */

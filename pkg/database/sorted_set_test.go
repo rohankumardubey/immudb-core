@@ -134,7 +134,7 @@ func TestStoreIndexEqualKeys(t *testing.T) {
 	}
 
 	reference1, err := db.ZAdd(zaddOpts)
-	require.Equal(t, ErrReferencedKeyCannotBeAReference, err)
+	require.ErrorIs(t, err, ErrReferencedKeyCannotBeAReference)
 
 	zaddOpts1 := &schema.ZAddRequest{
 		Set:      []byte(`hashA`),

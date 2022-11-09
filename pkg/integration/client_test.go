@@ -989,20 +989,17 @@ func TestImmuClient_Delete(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.Get(ctx, []byte("expirableKey"))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "key not found")
+	require.ErrorContains(t, err, "key not found")
 
 	deleteRequest.Keys = append(deleteRequest.Keys, []byte("1,2,3"))
 	_, err = client.Delete(ctx, deleteRequest)
 	require.NoError(t, err)
 
 	_, err = client.Get(ctx, []byte("1,2,3"))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "key not found")
+	require.ErrorContains(t, err, "key not found")
 
 	_, err = client.Delete(ctx, deleteRequest)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "key not found")
+	require.ErrorContains(t, err, "key not found")
 }
 
 func TestImmuClient_ExecAllOpsOptions(t *testing.T) {

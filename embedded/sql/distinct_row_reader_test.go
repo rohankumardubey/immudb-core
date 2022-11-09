@@ -27,7 +27,7 @@ func TestDistinctRowReader(t *testing.T) {
 
 	dummyr.failReturningColumns = true
 	_, err := newDistinctRowReader(dummyr)
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	dummyr.failReturningColumns = false
 
@@ -42,11 +42,11 @@ func TestDistinctRowReader(t *testing.T) {
 	require.Nil(t, rowReader.Tx())
 
 	_, err = rowReader.colsBySelector()
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	dummyr.failReturningColumns = true
 	_, err = rowReader.Columns()
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	require.Nil(t, rowReader.Parameters())
 
@@ -56,5 +56,5 @@ func TestDistinctRowReader(t *testing.T) {
 	dummyr.failInferringParams = true
 
 	err = rowReader.InferParameters(nil)
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 }

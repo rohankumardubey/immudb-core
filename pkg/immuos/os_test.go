@@ -44,7 +44,7 @@ func TestStandardOS(t *testing.T) {
 		return nil, errCreate
 	}
 	_, err = os.Create(filename)
-	require.Equal(t, errCreate, err)
+	require.ErrorIs(t, err, errCreate)
 	os.CreateF = createFOK
 
 	// Getwd
@@ -57,7 +57,7 @@ func TestStandardOS(t *testing.T) {
 		return "", errGetwd
 	}
 	_, err = os.Getwd()
-	require.Equal(t, errGetwd, err)
+	require.ErrorIs(t, err, errGetwd)
 	os.GetwdF = getwdFOK
 
 	// Mkdir
@@ -103,7 +103,7 @@ func TestStandardOS(t *testing.T) {
 		return nil, errStat
 	}
 	_, err = os.Stat(filename2)
-	require.Equal(t, errStat, err)
+	require.ErrorIs(t, err, errStat)
 	os.StatF = statFOK
 
 	// Remove
@@ -159,7 +159,7 @@ func TestStandardOS(t *testing.T) {
 		return nil, errOpen
 	}
 	_, err = os.Open("name")
-	require.Equal(t, errOpen, err)
+	require.ErrorIs(t, err, errOpen)
 	os.OpenF = openFOK
 
 	// OpenFile
@@ -169,7 +169,7 @@ func TestStandardOS(t *testing.T) {
 		return nil, errOpenFile
 	}
 	_, err = os.OpenFile("name", 1, 0644)
-	require.Equal(t, errOpenFile, err)
+	require.ErrorIs(t, err, errOpenFile)
 	os.OpenFileF = openFileFOK
 
 	// Executable
@@ -179,7 +179,7 @@ func TestStandardOS(t *testing.T) {
 		return "", errExecutable
 	}
 	_, err = os.Executable()
-	require.Equal(t, errExecutable, err)
+	require.ErrorIs(t, err, errExecutable)
 	os.ExecutableF = executableFOK
 
 	// Getpid
@@ -206,7 +206,7 @@ func TestStandardOSFilepathEmbedded(t *testing.T) {
 		return "", errAbs
 	}
 	_, err = os.Abs(relPath)
-	require.Equal(t, errAbs, err)
+	require.ErrorIs(t, err, errAbs)
 	os.AbsF = absFOK
 }
 
@@ -220,7 +220,7 @@ func TestStandardOSUserEmbedded(t *testing.T) {
 		return nil, errLookup
 	}
 	_, err := os.Lookup("username")
-	require.Equal(t, errLookup, err)
+	require.ErrorIs(t, err, errLookup)
 	os.LookupF = lookupFOK
 }
 

@@ -28,13 +28,13 @@ func TestConditionalRowReader(t *testing.T) {
 	rowReader := newConditionalRowReader(dummyr, &Bool{val: true})
 
 	_, err := rowReader.Columns()
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	err = rowReader.InferParameters(nil)
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	dummyr.failInferringParams = true
 
 	err = rowReader.InferParameters(nil)
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 }

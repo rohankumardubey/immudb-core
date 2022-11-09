@@ -31,10 +31,10 @@ func TestSQLExecAndQuery(t *testing.T) {
 	db.maxResultSize = 2
 
 	_, _, err := db.SQLExecPrepared(nil, nil, nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, _, err = db.SQLExec(nil, nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, _, err = db.SQLExec(&schema.SQLExecRequest{Sql: "invalid sql statement"}, nil)
 	require.Error(t, err)
@@ -74,10 +74,10 @@ func TestSQLExecAndQuery(t *testing.T) {
 	params[0] = &schema.NamedParam{Name: "active", Value: &schema.SQLValue{Value: &schema.SQLValue_B{B: true}}}
 
 	_, err = db.SQLQueryPrepared(nil, nil, nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.SQLQuery(nil, nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.SQLQuery(&schema.SQLQueryRequest{Sql: "invalid sql statement"}, nil)
 	require.Error(t, err)

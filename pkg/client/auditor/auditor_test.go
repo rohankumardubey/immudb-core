@@ -89,8 +89,7 @@ func TestDefaultAuditorPasswordDecodeErr(t *testing.T) {
 		func(string, string, bool, bool, bool, *schema.ImmutableState, *schema.ImmutableState) {},
 		logger.NewSimpleLogger("test", os.Stdout),
 		nil)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "illegal base64 data at input byte 0")
+	require.ErrorContains(t, err, "illegal base64 data at input byte 0")
 }
 
 func TestDefaultAuditorLoginErr(t *testing.T) {
@@ -442,6 +441,5 @@ func TestPublishAuditNotification(t *testing.T) {
 		&State{Tx: 1111, Hash: "hash-1111"},
 		&State{Tx: 2222, Hash: "hash-2222"},
 	)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid control character in URL")
+	require.ErrorContains(t, err, "invalid control character in URL")
 }

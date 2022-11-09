@@ -60,7 +60,7 @@ func TestStoreReference(t *testing.T) {
 		ReferencedKey: []byte(`firstKey`),
 	}
 	txhdr, err = db.SetReference(refOpts)
-	require.Equal(t, ErrFinalKeyCannotBeConvertedIntoReference, err)
+	require.ErrorIs(t, err, ErrFinalKeyCannotBeConvertedIntoReference)
 
 	refOpts = &schema.ReferenceRequest{
 		Key:           []byte(`myTag`),
@@ -134,7 +134,7 @@ func TestStoreInvalidReferenceToReference(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = db.SetReference(&schema.ReferenceRequest{Key: []byte(`myTag2`), ReferencedKey: []byte(`myTag1`)})
-	require.Equal(t, ErrReferencedKeyCannotBeAReference, err)
+	require.ErrorIs(t, err, ErrReferencedKeyCannotBeAReference)
 }
 
 func TestStoreReferenceAsyncCommit(t *testing.T) {

@@ -216,10 +216,10 @@ func TestDbSetGet(t *testing.T) {
 	var trustedIndex uint64
 
 	_, err := db.Set(nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.VerifiableGet(nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	for i, kv := range kvs[:1] {
 		txhdr, err := db.Set(&schema.SetRequest{KVs: []*schema.KeyValue{kv}})
@@ -398,7 +398,7 @@ func TestSafeSetGet(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = db.VerifiableSet(nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.VerifiableSet(&schema.VerifiableSetRequest{
 		SetRequest: &schema.SetRequest{
@@ -411,7 +411,7 @@ func TestSafeSetGet(t *testing.T) {
 		},
 		ProveSinceTx: 2,
 	})
-	require.Equal(t, ErrIllegalState, err)
+	require.ErrorIs(t, err, ErrIllegalState)
 
 	kv := []*schema.VerifiableSetRequest{
 		{
@@ -874,12 +874,12 @@ func TestTxScan(t *testing.T) {
 	}
 
 	_, err = db.TxScan(nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.TxScan(&schema.TxScanRequest{
 		InitialTx: 0,
 	})
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.TxScan(&schema.TxScanRequest{
 		InitialTx: 1,
@@ -977,7 +977,7 @@ func TestHistory(t *testing.T) {
 	time.Sleep(1 * time.Millisecond)
 
 	_, err = db.History(nil)
-	require.Equal(t, ErrIllegalArguments, err)
+	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	_, err = db.History(&schema.HistoryRequest{
 		Key:     kvs[0].Key,

@@ -35,11 +35,11 @@ func TestLimitRowReader(t *testing.T) {
 	require.Nil(t, rowReader.Tx())
 
 	_, err := rowReader.Read()
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	dummyr.failReturningColumns = true
 	_, err = rowReader.Columns()
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 
 	require.Nil(t, rowReader.Parameters())
 
@@ -49,5 +49,5 @@ func TestLimitRowReader(t *testing.T) {
 	dummyr.failInferringParams = true
 
 	err = rowReader.InferParameters(nil)
-	require.Equal(t, errDummy, err)
+	require.ErrorIs(t, err, errDummy)
 }

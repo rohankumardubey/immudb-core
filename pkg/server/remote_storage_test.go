@@ -326,7 +326,7 @@ func TestInitializeRemoteStorageIdentifierMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	err = s.initializeRemoteStorage(m)
-	require.Equal(t, ErrRemoteStorageDoesNotMatch, err)
+	require.ErrorIs(t, err, ErrRemoteStorageDoesNotMatch)
 }
 
 func TestInitializeRemoteStorageCreateLocalDirs(t *testing.T) {
