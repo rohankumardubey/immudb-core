@@ -18,6 +18,7 @@ package store
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
@@ -77,7 +78,7 @@ func TestImmudbStoreConcurrency(t *testing.T) {
 		defer wg.Done()
 
 		for i := 0; i < txCount; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for j := 0; j < eCount; j++ {
@@ -153,7 +154,7 @@ func TestImmudbStoreConcurrentCommits(t *testing.T) {
 			defer wg.Done()
 
 			for c := 0; c < txCount; {
-				tx, err := immuStore.NewWriteOnlyTx()
+				tx, err := immuStore.NewWriteOnlyTx(context.Background())
 				require.NoError(t, err)
 
 				for j := 0; j < eCount; j++ {
@@ -262,7 +263,7 @@ func TestImmudbStoreWithTimeFunction(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tx, err := immuStore.NewTx(DefaultTxOptions())
+	tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte("key1"), nil, []byte("value1"))
@@ -670,7 +671,7 @@ func TestImmudbStoreEdgeCases(t *testing.T) {
 			require.NoError(t, err)
 
 			go func() {
-				tx, err := store.NewWriteOnlyTx()
+				tx, err := store.NewWriteOnlyTx(context.Background())
 				require.NoError(t, err)
 
 				err = tx.Set([]byte("key"), nil, []byte("value"))
@@ -870,7 +871,7 @@ func TestImmudbStoreIndexing(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -966,7 +967,7 @@ func TestImmudbStoreIndexing(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("latest set value should be committed", func(t *testing.T) {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		err = tx.Set([]byte("key"), nil, []byte("value1"))
@@ -999,7 +1000,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	defer immustoreClose(t, immuStore)
 
 	t.Run("after closing write-only tx edge cases", func(t *testing.T) {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		require.Nil(t, tx.Metadata())
@@ -1048,7 +1049,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("cancelled transaction should not produce effects", func(t *testing.T) {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		_, err = tx.Get([]byte{1, 2, 3})
@@ -1081,7 +1082,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 		_, err := immuStore.Get([]byte("key1"))
 		require.ErrorIs(t, err, embedded.ErrKeyNotFound)
 
-		tx, err := immuStore.NewTx(DefaultTxOptions())
+		tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		_, err = tx.Get([]byte("key1"))
@@ -1151,10 +1152,10 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("second ongoing tx after the first commit should succeed", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1_tx1"))
@@ -1180,10 +1181,10 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("second ongoing tx with multiple entries after the first commit should succeed", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1_tx1"))
@@ -1212,10 +1213,10 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("second ongoing tx after the first cancellation should succeed", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1_tx1"))
@@ -1241,7 +1242,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("deleted keys should not be reachable", func(t *testing.T) {
-		tx, err := immuStore.NewTx(DefaultTxOptions())
+		tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx.Delete([]byte{1, 2, 3})
@@ -1282,7 +1283,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 		require.NotNil(t, valRef.KVMetadata())
 		require.False(t, valRef.KVMetadata().IsExpirable())
 
-		tx, err = immuStore.NewTx(DefaultTxOptions())
+		tx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 		defer tx.Cancel()
 
@@ -1303,7 +1304,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	t.Run("non-expired keys should be reachable", func(t *testing.T) {
 		nearFuture := time.Now().Add(2 * time.Second)
 
-		tx, err := immuStore.NewTx(DefaultTxOptions())
+		tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		md := NewKVMetadata()
@@ -1347,7 +1348,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	t.Run("expired keys should not be reachable", func(t *testing.T) {
 		now := time.Now()
 
-		tx, err := immuStore.NewTx(DefaultTxOptions())
+		tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		md := NewKVMetadata()
@@ -1373,7 +1374,7 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 	})
 
 	t.Run("transactions should not read data from anothers committed or ongoing transactions since it was created", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Delete([]byte("key1"))
@@ -1385,20 +1386,20 @@ func TestImmudbStoreRWTransactions(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Set([]byte("key1"), nil, []byte("value1_tx2"))
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		_, err = tx3.Get([]byte("key1"))
 		require.ErrorIs(t, err, ErrKeyNotFound)
 
 		// ongoing tranactions should not read committed entries since their creation
-		tx11, err := immuStore.NewTx(DefaultTxOptions())
+		tx11, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx11.Set([]byte("key1"), nil, []byte("value1_tx11"))
@@ -1438,7 +1439,7 @@ func TestImmudbStoreKVMetadata(t *testing.T) {
 
 	defer immustoreClose(t, immuStore)
 
-	tx, err := immuStore.NewTx(DefaultTxOptions())
+	tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 	require.NotNil(t, tx)
 
@@ -1483,7 +1484,7 @@ func TestImmudbStoreKVMetadata(t *testing.T) {
 		require.ErrorIs(t, err, ErrKeyNotFound)
 	})
 
-	tx, err = immuStore.NewTx(DefaultTxOptions())
+	tx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 
 	_, err = tx.Get([]byte{1, 2, 3})
@@ -1510,7 +1511,7 @@ func TestImmudbStoreNonIndexableEntries(t *testing.T) {
 
 	defer immustoreClose(t, immuStore)
 
-	tx, err := immuStore.NewTx(DefaultTxOptions())
+	tx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 	require.NotNil(t, tx)
 
@@ -1539,7 +1540,7 @@ func TestImmudbStoreNonIndexableEntries(t *testing.T) {
 	require.Equal(t, []byte("indexedValue"), val)
 
 	// commit tx with all non-indexable entries
-	tx, err = immuStore.NewTx(DefaultTxOptions())
+	tx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 	require.NotNil(t, tx)
 
@@ -1553,7 +1554,7 @@ func TestImmudbStoreNonIndexableEntries(t *testing.T) {
 	require.ErrorIs(t, err, ErrKeyNotFound)
 
 	// commit simple tx with an indexable entry
-	tx, err = immuStore.NewTx(DefaultTxOptions())
+	tx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 	require.NotNil(t, tx)
 
@@ -1580,19 +1581,19 @@ func TestImmudbStoreCommitWith(t *testing.T) {
 
 	defer immustoreClose(t, immuStore)
 
-	_, err = immuStore.CommitWith(nil, false)
+	_, err = immuStore.CommitWith(context.Background(), nil, false)
 	require.ErrorIs(t, err, ErrIllegalArguments)
 
 	callback := func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
 		return nil, nil, nil
 	}
-	_, err = immuStore.CommitWith(callback, false)
+	_, err = immuStore.CommitWith(context.Background(), callback, false)
 	require.ErrorIs(t, err, ErrorNoEntriesProvided)
 
 	callback = func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
 		return nil, nil, errors.New("error")
 	}
-	_, err = immuStore.CommitWith(callback, false)
+	_, err = immuStore.CommitWith(context.Background(), callback, false)
 	require.Error(t, err)
 
 	callback = func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
@@ -1601,7 +1602,7 @@ func TestImmudbStoreCommitWith(t *testing.T) {
 		}, nil, nil
 	}
 
-	hdr, err := immuStore.CommitWith(callback, true)
+	hdr, err := immuStore.CommitWith(context.Background(), callback, true)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(1), immuStore.IndexInfo())
@@ -1637,7 +1638,7 @@ func TestImmudbStoreHistoricalValues(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -1735,7 +1736,7 @@ func TestImmudbStoreInclusionProof(t *testing.T) {
 	eCount := 100
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		tx.WithMetadata(NewTxMetadata())
@@ -1762,7 +1763,7 @@ func TestImmudbStoreInclusionProof(t *testing.T) {
 	err = immuStore.Close()
 	require.NoError(t, err)
 
-	_, err = immuStore.CommitWith(func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
+	_, err = immuStore.CommitWith(context.Background(), func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
 		return []*EntrySpec{
 			{Key: []byte(fmt.Sprintf("keyInsertedAtTx%d", txID)), Value: nil},
 		}, nil, nil
@@ -1846,7 +1847,7 @@ func TestLeavesMatchesAHTSync(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -1903,7 +1904,7 @@ func TestLeavesMatchesAHTASync(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -1950,7 +1951,7 @@ func TestImmudbStoreConsistencyProof(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		tx.WithMetadata(NewTxMetadata())
@@ -2010,7 +2011,7 @@ func TestImmudbStoreConsistencyProofAgainstLatest(t *testing.T) {
 	eCount := 10
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -2063,14 +2064,14 @@ func TestImmudbStoreConsistencyProofReopened(t *testing.T) {
 	txCount := 16
 	eCount := 100
 
-	tx, err := immuStore.NewWriteOnlyTx()
+	tx, err := immuStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	_, err = tx.Commit()
 	require.ErrorIs(t, err, ErrorNoEntriesProvided)
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -2165,7 +2166,7 @@ func TestReOpeningImmudbStore(t *testing.T) {
 		require.NoError(t, err)
 
 		for i := 0; i < txCount; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for j := 0; j < eCount; j++ {
@@ -2207,7 +2208,7 @@ func TestReOpeningWithCompressionEnabledImmudbStore(t *testing.T) {
 		require.NoError(t, err)
 
 		for i := 0; i < txCount; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for j := 0; j < eCount; j++ {
@@ -2284,7 +2285,7 @@ func TestUncommittedTxOverwriting(t *testing.T) {
 	emulatedFailures := 0
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		for j := 0; j < eCount; j++ {
@@ -2367,7 +2368,7 @@ func TestExportAndReplicateTx(t *testing.T) {
 	require.NoError(t, err)
 	defer immustoreClose(t, replicaStore)
 
-	tx, err := primaryStore.NewWriteOnlyTx()
+	tx, err := primaryStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	tx.WithMetadata(NewTxMetadata())
@@ -2384,14 +2385,14 @@ func TestExportAndReplicateTx(t *testing.T) {
 	etx, err := primaryStore.ExportTx(1, false, txholder)
 	require.NoError(t, err)
 
-	rhdr, err := replicaStore.ReplicateTx(etx, false)
+	rhdr, err := replicaStore.ReplicateTx(context.Background(), etx, false)
 	require.NoError(t, err)
 	require.NotNil(t, rhdr)
 
 	require.Equal(t, hdr.ID, rhdr.ID)
 	require.Equal(t, hdr.Alh(), rhdr.Alh())
 
-	_, err = replicaStore.ReplicateTx(nil, false)
+	_, err = replicaStore.ReplicateTx(context.Background(), nil, false)
 	require.ErrorIs(t, err, ErrIllegalArguments)
 }
 
@@ -2408,7 +2409,7 @@ func TestExportAndReplicateTxCornerCases(t *testing.T) {
 	require.NoError(t, err)
 	defer immustoreClose(t, replicaStore)
 
-	tx, err := primaryStore.NewWriteOnlyTx()
+	tx, err := primaryStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	tx.WithMetadata(NewTxMetadata())
@@ -2439,7 +2440,7 @@ func TestExportAndReplicateTxCornerCases(t *testing.T) {
 				copy(brokenEtx, etx)
 				brokenEtx[i]++
 
-				_, err = replicaStore.ReplicateTx(brokenEtx, false)
+				_, err = replicaStore.ReplicateTx(context.Background(), brokenEtx, false)
 				require.Error(t, err)
 
 				if !errors.Is(err, ErrIllegalArguments) &&
@@ -2471,7 +2472,7 @@ func TestExportAndReplicateTxSimultaneousWriters(t *testing.T) {
 
 	for i := 0; i < txCount; i++ {
 		t.Run(fmt.Sprintf("tx: %d", i), func(t *testing.T) {
-			tx, err := primaryStore.NewWriteOnlyTx()
+			tx, err := primaryStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			tx.WithMetadata(NewTxMetadata())
@@ -2494,7 +2495,7 @@ func TestExportAndReplicateTxSimultaneousWriters(t *testing.T) {
 				wg.Add(1)
 				go func(j int) {
 					defer wg.Done()
-					_, errors[j] = replicaStore.ReplicateTx(etx, false)
+					_, errors[j] = replicaStore.ReplicateTx(context.Background(), etx, false)
 				}(j)
 			}
 			wg.Wait()
@@ -2534,7 +2535,7 @@ func TestExportAndReplicateTxDisorderedReplication(t *testing.T) {
 	txholder := tempTxHolder(t, replicaStore)
 
 	for i := 0; i < txCount; i++ {
-		tx, err := primaryStore.NewWriteOnlyTx()
+		tx, err := primaryStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		tx.WithMetadata(NewTxMetadata())
@@ -2567,7 +2568,7 @@ func TestExportAndReplicateTxDisorderedReplication(t *testing.T) {
 			for etx := range etxs {
 				time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 
-				_, err = replicaStore.ReplicateTx(etx, false)
+				_, err = replicaStore.ReplicateTx(context.Background(), etx, false)
 				require.NoError(t, err)
 			}
 		}(r)
@@ -2606,7 +2607,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	defer immuStore.Close()
 
 	// set initial value
-	otx, err := immuStore.NewTx(DefaultTxOptions())
+	otx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 
 	err = otx.Set([]byte("key1"), nil, []byte("value1"))
@@ -2616,7 +2617,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	require.NoError(t, err)
 
 	// delete entry
-	otx, err = immuStore.NewTx(DefaultTxOptions())
+	otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 
 	err = otx.Delete([]byte("key1"))
@@ -2626,7 +2627,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("must not exist constraint should pass when evaluated over a deleted key", func(t *testing.T) {
-		otx, err := immuStore.NewTx(DefaultTxOptions())
+		otx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key2"), nil, []byte("value2"))
@@ -2640,7 +2641,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	t.Run("must exist constraint should pass when evaluated over an existent key", func(t *testing.T) {
-		otx, err := immuStore.NewTx(DefaultTxOptions())
+		otx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key3"), nil, []byte("value3"))
@@ -2654,7 +2655,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	t.Run("must not be modified after constraint should not pass when key is deleted after specified tx", func(t *testing.T) {
-		otx, err := immuStore.NewTx(DefaultTxOptions())
+		otx, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key4"), nil, []byte("value4"))
@@ -2668,7 +2669,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	t.Run("must not be modified after constraint should pass when if key does not exist", func(t *testing.T) {
-		otx, err = immuStore.NewTx(DefaultTxOptions())
+		otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key4"), nil, []byte("value4"))
@@ -2682,7 +2683,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	// insert an expirable entry
-	otx, err = immuStore.NewTx(DefaultTxOptions())
+	otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 	require.NoError(t, err)
 
 	md := NewKVMetadata()
@@ -2710,7 +2711,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	}
 
 	t.Run("must not be modified after constraint should not pass when if expired and expiration was set after specified tx", func(t *testing.T) {
-		otx, err = immuStore.NewTx(DefaultTxOptions())
+		otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key5"), nil, []byte("value5"))
@@ -2724,7 +2725,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	t.Run("must not exist constraint should pass when if expired", func(t *testing.T) {
-		otx, err = immuStore.NewTx(DefaultTxOptions())
+		otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key5"), nil, []byte("value5"))
@@ -2738,7 +2739,7 @@ func TestImmudbStoreCommitWithPreconditions(t *testing.T) {
 	})
 
 	t.Run("must exist constraint should not pass when if expired", func(t *testing.T) {
-		otx, err = immuStore.NewTx(DefaultTxOptions())
+		otx, err = immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = otx.Set([]byte("key5"), nil, []byte("value5"))
@@ -2778,7 +2779,7 @@ func BenchmarkSyncedAppend(b *testing.B) {
 				committed := 0
 
 				for committed < txCount {
-					tx, err := immuStore.NewWriteOnlyTx()
+					tx, err := immuStore.NewWriteOnlyTx(context.Background())
 					require.NoError(b, err)
 
 					for j := 0; j < eCount; j++ {
@@ -2823,7 +2824,7 @@ func BenchmarkAsyncAppend(b *testing.B) {
 		eCount := 1000
 
 		for i := 0; i < txCount; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(b, err)
 
 			for j := 0; j < eCount; j++ {
@@ -2882,7 +2883,7 @@ func BenchmarkSyncedAppendWithExtCommitAllowance(b *testing.B) {
 				committed := 0
 
 				for committed < txCount {
-					tx, err := immuStore.NewWriteOnlyTx()
+					tx, err := immuStore.NewWriteOnlyTx(context.Background())
 					require.NoError(b, err)
 
 					for j := 0; j < eCount; j++ {
@@ -2939,7 +2940,7 @@ func BenchmarkAsyncAppendWithExtCommitAllowance(b *testing.B) {
 		eCount := 1000
 
 		for i := 0; i < txCount; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(b, err)
 
 			for j := 0; j < eCount; j++ {
@@ -2965,7 +2966,7 @@ func TestImmudbStoreIncompleteCommitWrite(t *testing.T) {
 	immuStore, err := Open(dir, DefaultOptions())
 	require.NoError(t, err)
 
-	tx, err := immuStore.NewWriteOnlyTx()
+	tx, err := immuStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte("key1"), nil, []byte("val1"))
@@ -3022,7 +3023,7 @@ func TestImmudbStoreTruncatedCommitLog(t *testing.T) {
 	immuStore, err := Open(dir, DefaultOptions())
 	require.NoError(t, err)
 
-	tx, err := immuStore.NewWriteOnlyTx()
+	tx, err := immuStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte("key1"), nil, []byte("val1"))
@@ -3032,7 +3033,7 @@ func TestImmudbStoreTruncatedCommitLog(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, hdr1)
 
-	tx, err = immuStore.NewWriteOnlyTx()
+	tx, err = immuStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte("key1"), nil, []byte("val2"))
@@ -3084,7 +3085,7 @@ func TestImmudbStoreTruncatedCommitLog(t *testing.T) {
 	require.EqualValues(t, []byte("val1"), value)
 
 	// ensure we can correctly write more data into the store
-	tx, err = immuStore.NewWriteOnlyTx()
+	tx, err = immuStore.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte("key1"), nil, []byte("val2"))
@@ -3130,7 +3131,7 @@ func TestImmudbPreconditionIndexing(t *testing.T) {
 		immuStore.indexer.Pause()
 
 		for i := 1; i < 100; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			err = tx.Set([]byte(fmt.Sprintf("key_%d", i)), nil, []byte(fmt.Sprintf("value_%d", i)))
@@ -3141,7 +3142,7 @@ func TestImmudbPreconditionIndexing(t *testing.T) {
 		}
 
 		// Next prepare transaction with preconditions - this must wait for the indexer
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		err = tx.Set([]byte("key"), nil, []byte("value"))
@@ -3172,7 +3173,7 @@ func TestImmudbPreconditionIndexing(t *testing.T) {
 		immuStore.indexer.Pause()
 
 		for i := 1; i < 100; i++ {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			err = tx.Set([]byte(fmt.Sprintf("key2_%d", i)), nil, []byte(fmt.Sprintf("value2_%d", i)))
@@ -3188,7 +3189,7 @@ func TestImmudbPreconditionIndexing(t *testing.T) {
 		}()
 
 		// Next prepare transaction with preconditions - this must wait for the indexer
-		_, err = immuStore.CommitWith(func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
+		_, err = immuStore.CommitWith(context.Background(), func(txID uint64, index KeyIndex) ([]*EntrySpec, []Precondition, error) {
 			return []*EntrySpec{{
 					Key:   []byte("key2"),
 					Value: []byte("value2"),
@@ -3225,7 +3226,7 @@ func TestTimeBasedTxLookup(t *testing.T) {
 	const txCount = 100
 
 	for i := 0; i < txCount; i++ {
-		tx, err := immuStore.NewWriteOnlyTx()
+		tx, err := immuStore.NewWriteOnlyTx(context.Background())
 		require.NoError(t, err)
 
 		err = tx.Set([]byte("key1"), nil, []byte("val1"))
@@ -3303,7 +3304,7 @@ func TestBlTXOrdering(t *testing.T) {
 						return
 					default:
 					}
-					tx, err := immuStore.NewWriteOnlyTx()
+					tx, err := immuStore.NewWriteOnlyTx(context.Background())
 					require.NoError(t, err)
 
 					tx.Set([]byte(fmt.Sprintf("key:%d", i)), nil, []byte("value"))
@@ -3367,7 +3368,7 @@ func TestImmudbStoreExternalCommitAllowance(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for i := 0; i < eCount; i++ {
@@ -3425,7 +3426,7 @@ func TestImmudbStorePrecommittedTxLoading(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for i := 0; i < eCount; i++ {
@@ -3483,7 +3484,7 @@ func TestImmudbStorePrecommittedTxDiscarding(t *testing.T) {
 
 	for i := 0; i < txCount; i++ {
 		go func() {
-			tx, err := immuStore.NewWriteOnlyTx()
+			tx, err := immuStore.NewWriteOnlyTx(context.Background())
 			require.NoError(t, err)
 
 			for i := 0; i < eCount; i++ {
@@ -3554,10 +3555,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	defer immuStore.Close()
 
 	t.Run("no read conflict should be detected when read keys are not updated by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3577,10 +3578,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected even when the key was updated by another transaction if its value was not read", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3597,10 +3598,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read key was updated by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key3"), nil, []byte("value"))
@@ -3620,7 +3621,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read key was deleted by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key4"), nil, []byte("value"))
@@ -3629,10 +3630,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Delete([]byte("key4"))
@@ -3652,10 +3653,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("no read conflict should be detected when read keys are not updated by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3676,10 +3677,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read key was updated by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3700,10 +3701,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read key was deleted by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Delete([]byte("key1"))
@@ -3724,7 +3725,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read keys have been updated by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3733,10 +3734,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Set([]byte("key2"), nil, []byte("value2"))
@@ -3782,7 +3783,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("no read conflict should be detected when read keys have been updated by the ongoing transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3791,10 +3792,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Set([]byte("key2"), nil, []byte("value2"))
@@ -3837,7 +3838,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when reading more entries than expected", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3846,10 +3847,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Set([]byte("key5"), nil, []byte("value5"))
@@ -3881,7 +3882,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read keys are deleted by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3890,10 +3891,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Delete([]byte("key1"))
@@ -3926,7 +3927,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read keys are deleted by the ongoing transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3935,10 +3936,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Delete([]byte("key1"))
@@ -3971,7 +3972,7 @@ func TestImmudbStoreMVCC(t *testing.T) {
 	})
 
 	t.Run("read conflict should be detected when read keys are deleted by another transaction", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx1.Set([]byte("key1"), nil, []byte("value1"))
@@ -3983,10 +3984,10 @@ func TestImmudbStoreMVCC(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
-		tx3, err := immuStore.NewTx(DefaultTxOptions())
+		tx3, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		err = tx2.Delete([]byte("key1"))
@@ -4029,7 +4030,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	defer immuStore.Close()
 
 	t.Run("MVCC read-set limit should be reached when randomly reading keys", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i < mvccReadsetLimit; i++ {
@@ -4047,7 +4048,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should not be reached when reading an updated key", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i <= mvccReadsetLimit; i++ {
@@ -4065,7 +4066,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should be reached when reading keys by prefix", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i < mvccReadsetLimit; i++ {
@@ -4083,7 +4084,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should not be reached when reading an updated entries", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i <= mvccReadsetLimit; i++ {
@@ -4101,7 +4102,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should be reached when scanning out of read-set boundaries", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i < mvccReadsetLimit; i++ {
@@ -4129,7 +4130,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should be reached when reseting a reader out of read-set boundaries", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i < mvccReadsetLimit; i++ {
@@ -4157,7 +4158,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 	})
 
 	t.Run("MVCC read-set limit should be reached when reading non-updated keys", func(t *testing.T) {
-		tx1, err := immuStore.NewTx(DefaultTxOptions())
+		tx1, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i <= mvccReadsetLimit; i++ {
@@ -4168,7 +4169,7 @@ func TestImmudbStoreMVCCBoundaries(t *testing.T) {
 		_, err = tx1.Commit()
 		require.NoError(t, err)
 
-		tx2, err := immuStore.NewTx(DefaultTxOptions())
+		tx2, err := immuStore.NewTx(context.Background(), DefaultTxOptions())
 		require.NoError(t, err)
 
 		for i := 0; i < mvccReadsetLimit; i++ {

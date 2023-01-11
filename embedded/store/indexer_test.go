@@ -17,6 +17,7 @@ limitations under the License.
 package store
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -99,7 +100,7 @@ func TestMaxIndexWaitees(t *testing.T) {
 	}
 
 	// Store one transaction
-	tx, err := store.NewWriteOnlyTx()
+	tx, err := store.NewWriteOnlyTx(context.Background())
 	require.NoError(t, err)
 
 	err = tx.Set([]byte{1}, nil, []byte{2})
