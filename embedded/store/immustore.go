@@ -619,7 +619,7 @@ func OpenWith(path string, vLogs []appendable.Appendable, txLog, cLog appendable
 				committedTxID := store.LastCommittedTxID()
 
 				// passive wait for one new transaction at least
-				store.inmemPrecommitWHub.WaitFor(committedTxID+1, nil)
+				store.inmemPrecommitWHub.WaitFor(committedTxID+1, context.Background())
 
 				// TODO: waiting on earlier stages of transaction processing may also be possible
 				prevLatestPrecommitedTx := committedTxID + 1
@@ -810,20 +810,20 @@ func (s *ImmuStore) Snapshot() (*Snapshot, error) {
 // SnapshotMustIncludeTxID returns a new snapshot based on an existent dumped root (snapshot reuse).
 // Current root may be dumped if there are no previous root already stored on disk or if the dumped one was old enough.
 // If txID is 0, any snapshot may be used.
-func (s *ImmuStore) SnapshotMustIncludeTxID(txID uint64) (*Snapshot, error) {
-	return s.SnapshotMustIncludeTxIDWithRenewalPeriod(txID, 0)
+func (s *ImmuStore) SnapshotMustIncludeTxID(txID uint64, ctx context.Context) (*Snapshot, error) {
+	return s.SnapshotMustIncludeTxIDWithRenewalPeriod(txID, 0, ctx)
 }
 
 // SnapshotMustIncludeTxIDWithRenewalPeriod returns a new snapshot based on an existent dumped root (snapshot reuse).
 // Current root may be dumped if there are no previous root already stored on disk or if the dumped one was old enough.
 // If txID is 0, any snapshot not older than renewalPeriod may be used.
 // If renewalPeriod is 0, renewal period is not taken into consideration
-func (s *ImmuStore) SnapshotMustIncludeTxIDWithRenewalPeriod(txID uint64, renewalPeriod time.Duration) (*Snapshot, error) {
+func (s *ImmuStore) SnapshotMustIncludeTxIDWithRenewalPeriod(txID uint64, renewalPeriod time.Duration, ctx context.Context) (*Snapshot, error) {
 	if txID > s.lastPrecommittedTxID() {
 		return nil, fmt.Errorf("%w: txID is greater than the last precommitted transaction", ErrIllegalArguments)
 	}
 
-	err := s.WaitForIndexingUpto(txID, nil)
+	err := s.WaitForIndexingUpto(txID, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -910,7 +910,7 @@ func (s *ImmuStore) syncBinaryLinking() error {
 	return nil
 }
 
-func (s *ImmuStore) WaitForTx(txID uint64, allowPrecommitted bool, cancellation <-chan struct{}) error {
+func (s *ImmuStore) WaitForTx(txID uint64, allowPrecommitted bool, ctx context.Context) error {
 	s.waiteesMutex.Lock()
 
 	if s.waiteesCount == s.maxWaitees {
@@ -931,9 +931,9 @@ func (s *ImmuStore) WaitForTx(txID uint64, allowPrecommitted bool, cancellation 
 	var err error
 
 	if allowPrecommitted {
-		err = s.durablePrecommitWHub.WaitFor(txID, cancellation)
+		err = s.durablePrecommitWHub.WaitFor(txID, ctx)
 	} else {
-		err = s.commitWHub.WaitFor(txID, cancellation)
+		err = s.commitWHub.WaitFor(txID, ctx)
 	}
 	if err == watchers.ErrAlreadyClosed {
 		return ErrAlreadyClosed
@@ -941,7 +941,7 @@ func (s *ImmuStore) WaitForTx(txID uint64, allowPrecommitted bool, cancellation 
 	return err
 }
 
-func (s *ImmuStore) WaitForIndexingUpto(txID uint64, cancellation <-chan struct{}) error {
+func (s *ImmuStore) WaitForIndexingUpto(txID uint64, ctx context.Context) error {
 	s.waiteesMutex.Lock()
 
 	if s.waiteesCount == s.maxWaitees {
@@ -959,7 +959,7 @@ func (s *ImmuStore) WaitForIndexingUpto(txID uint64, cancellation <-chan struct{
 		s.waiteesMutex.Unlock()
 	}()
 
-	return s.indexer.WaitForIndexingUpto(txID, cancellation)
+	return s.indexer.WaitForIndexingUpto(txID, ctx)
 }
 
 func (s *ImmuStore) CompactIndex() error {
@@ -1134,7 +1134,8 @@ func (s *ImmuStore) commit(otx *OngoingTx, expectedHeader *TxHeader, waitForInde
 	}
 
 	// note: durability is ensured only if the store is in sync mode
-	err = s.commitWHub.WaitFor(hdr.ID, nil)
+	// the use of a non-cancellable context is to enforce waiting for syncing to happen before exposing the header
+	err = s.commitWHub.WaitFor(hdr.ID, context.Background())
 	if err == watchers.ErrAlreadyClosed {
 		return hdr, ErrAlreadyClosed
 	}
@@ -1143,7 +1144,7 @@ func (s *ImmuStore) commit(otx *OngoingTx, expectedHeader *TxHeader, waitForInde
 	}
 
 	if waitForIndexing {
-		err = s.WaitForIndexingUpto(hdr.ID, nil)
+		err = s.WaitForIndexingUpto(hdr.ID, otx.Context())
 		if err != nil {
 			return hdr, err
 		}
@@ -1227,7 +1228,7 @@ func (s *ImmuStore) precommit(otx *OngoingTx, hdr *TxHeader) (*TxHeader, error) 
 		}
 
 		// ensure tx is committed in the expected order
-		err = s.inmemPrecommitWHub.WaitFor(hdr.ID-1, nil)
+		err = s.inmemPrecommitWHub.WaitFor(hdr.ID-1, otx.Context())
 		if err == watchers.ErrAlreadyClosed {
 			return nil, ErrAlreadyClosed
 		}
@@ -1286,7 +1287,7 @@ func (s *ImmuStore) precommit(otx *OngoingTx, hdr *TxHeader) (*TxHeader, error) 
 
 	if otx.hasPreconditions() {
 		// Preconditions must be executed with up-to-date tree
-		err = s.WaitForIndexingUpto(currPrecomittedTxID, nil)
+		err = s.WaitForIndexingUpto(currPrecomittedTxID, otx.Context())
 		if err != nil {
 			return nil, err
 		}
@@ -1660,7 +1661,8 @@ func (s *ImmuStore) CommitWith(ctx context.Context, callback func(txID uint64, i
 	}
 
 	// note: durability is ensured only if the store is in sync mode
-	err = s.commitWHub.WaitFor(hdr.ID, nil)
+	// the use of a non-cancellable context is to enforce waiting for syncing to happen before exposing the header
+	err = s.commitWHub.WaitFor(hdr.ID, context.Background())
 	if errors.Is(err, watchers.ErrAlreadyClosed) {
 		return hdr, ErrAlreadyClosed
 	}
@@ -1669,7 +1671,7 @@ func (s *ImmuStore) CommitWith(ctx context.Context, callback func(txID uint64, i
 	}
 
 	if waitForIndexing {
-		err = s.WaitForIndexingUpto(hdr.ID, nil)
+		err = s.WaitForIndexingUpto(hdr.ID, ctx)
 		if err != nil {
 			return hdr, err
 		}
@@ -1747,7 +1749,7 @@ func (s *ImmuStore) preCommitWith(ctx context.Context, callback func(txID uint64
 		s.indexer.Resume()
 
 		// Preconditions must be executed with up-to-date tree
-		err = s.WaitForIndexingUpto(lastPreCommittedTxID, nil)
+		err = s.WaitForIndexingUpto(lastPreCommittedTxID, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -2225,7 +2227,8 @@ func (s *ImmuStore) ReplicateTx(ctx context.Context, exportedTx []byte, waitForI
 		return nil, err
 	}
 
-	err = s.durablePrecommitWHub.WaitFor(txHdr.ID, nil)
+	// the use of a non-cancellable context is to enforce waiting for syncing to happen before exposing the header
+	err = s.durablePrecommitWHub.WaitFor(txHdr.ID, context.Background())
 	if err == watchers.ErrAlreadyClosed {
 		return txHdr, ErrAlreadyClosed
 	}
@@ -2234,7 +2237,8 @@ func (s *ImmuStore) ReplicateTx(ctx context.Context, exportedTx []byte, waitForI
 	}
 
 	if !s.useExternalCommitAllowance {
-		err = s.commitWHub.WaitFor(txHdr.ID, nil)
+		// the use of a non-cancellable context is to enforce waiting for syncing to happen before exposing the header
+		err = s.commitWHub.WaitFor(txHdr.ID, context.Background())
 		if err == watchers.ErrAlreadyClosed {
 			return txHdr, ErrAlreadyClosed
 		}
@@ -2243,7 +2247,7 @@ func (s *ImmuStore) ReplicateTx(ctx context.Context, exportedTx []byte, waitForI
 		}
 
 		if waitForIndexing {
-			err = s.WaitForIndexingUpto(txHdr.ID, nil)
+			err = s.WaitForIndexingUpto(txHdr.ID, txSpec.Context())
 			if err != nil {
 				return txHdr, err
 			}

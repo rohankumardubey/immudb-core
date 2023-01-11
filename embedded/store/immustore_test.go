@@ -899,7 +899,7 @@ func TestImmudbStoreIndexing(t *testing.T) {
 			for {
 				txID, _ := immuStore.CommittedAlh()
 
-				snap, err := immuStore.SnapshotMustIncludeTxID(txID)
+				snap, err := immuStore.SnapshotMustIncludeTxID(txID, context.Background())
 				require.NoError(t, err)
 
 				for i := 0; i < int(snap.Ts()); i++ {
@@ -1865,10 +1865,10 @@ func TestLeavesMatchesAHTSync(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint64(i+1), txhdr.ID)
 
-		err = immuStore.WaitForTx(txhdr.ID, false, nil)
+		err = immuStore.WaitForTx(txhdr.ID, false, context.Background())
 		require.NoError(t, err)
 
-		err = immuStore.WaitForIndexingUpto(txhdr.ID, nil)
+		err = immuStore.WaitForIndexingUpto(txhdr.ID, context.Background())
 		require.NoError(t, err)
 
 		var k0 [8]byte
@@ -2581,7 +2581,7 @@ func TestExportAndReplicateTxDisorderedReplication(t *testing.T) {
 		return
 	}
 
-	err = replicaStore.WaitForTx(uint64(txCount), false, nil)
+	err = replicaStore.WaitForTx(uint64(txCount), false, context.Background())
 	require.NoError(t, err)
 }
 
@@ -3073,7 +3073,7 @@ func TestImmudbStoreTruncatedCommitLog(t *testing.T) {
 	immuStore, err = Open(dir, DefaultOptions())
 	require.NoError(t, err)
 
-	err = immuStore.WaitForIndexingUpto(hdr1.ID, nil)
+	err = immuStore.WaitForIndexingUpto(hdr1.ID, context.Background())
 	require.NoError(t, err)
 
 	valRef, err := immuStore.Get([]byte("key1"))
@@ -3387,7 +3387,7 @@ func TestImmudbStoreExternalCommitAllowance(t *testing.T) {
 		}()
 	}
 
-	err = immuStore.WaitForTx(uint64(txCount), true, nil)
+	err = immuStore.WaitForTx(uint64(txCount), true, context.Background())
 	require.NoError(t, err)
 
 	go func() {
@@ -3445,7 +3445,7 @@ func TestImmudbStorePrecommittedTxLoading(t *testing.T) {
 		}()
 	}
 
-	err = immuStore.WaitForTx(uint64(txCount), true, nil)
+	err = immuStore.WaitForTx(uint64(txCount), true, context.Background())
 	require.NoError(t, err)
 
 	err = immuStore.Close()
@@ -3457,7 +3457,7 @@ func TestImmudbStorePrecommittedTxLoading(t *testing.T) {
 	err = immuStore.AllowCommitUpto(uint64(txCount))
 	require.NoError(t, err)
 
-	err = immuStore.WaitForTx(uint64(txCount), false, nil)
+	err = immuStore.WaitForTx(uint64(txCount), false, context.Background())
 	require.NoError(t, err)
 
 	err = immuStore.Close()
@@ -3505,7 +3505,7 @@ func TestImmudbStorePrecommittedTxDiscarding(t *testing.T) {
 		}()
 	}
 
-	err = immuStore.WaitForTx(uint64(txCount), true, nil)
+	err = immuStore.WaitForTx(uint64(txCount), true, context.Background())
 	require.NoError(t, err)
 
 	err = immuStore.Close()
@@ -3525,7 +3525,7 @@ func TestImmudbStorePrecommittedTxDiscarding(t *testing.T) {
 	require.ErrorIs(t, err, ErrIllegalArguments)
 	require.Zero(t, n)
 
-	err = immuStore.WaitForTx(uint64(txCount/2), false, nil)
+	err = immuStore.WaitForTx(uint64(txCount/2), false, context.Background())
 	require.NoError(t, err)
 
 	// discard all expect one precommitted tx
